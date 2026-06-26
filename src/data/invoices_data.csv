@@ -2,3 +2,4 @@ invoice_date,invoice_reference,invoice_category,invoice_payment_method,invoice_a
 25/06/2026,INV/2026/0003,cars,PT50123456789,300000,goncalo
 25/06/2026,INV/2026/009,cars,PT50123456789,345000,goncalo
 01/07/2026,INV/2025/33443,cars,4553363636,3363636363,goncalo
+27/06/2026,INV/2026/0555,alimentacao,PT50123456789,200,goncalo

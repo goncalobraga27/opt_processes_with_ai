@@ -63,3 +63,83 @@ class Menu:
         invoice_amount = input("Insira o valor da fatura: ")
         print(f"Fatura '{invoice_reference}' criada com sucesso!")
         return invoice_date, invoice_reference, invoice_category, invoice_payment_method, invoice_amount
+    
+    def print_manager_menu(self):
+        print("1. Ver pedidos criados")
+        print("2. Atualizar o estado de um pedido")
+        print("3. Ver insights sobre as faturas registadas na plataforma")
+        print("4. Sair")
+        return input("Opção: ")
+    
+    def show_request_data(self, request_data_list):
+        if not request_data_list:
+            print("Sem pedidos.")
+            return
+
+        # cabeçalho
+        headers = ["Nome", "Descrição", "Cliente", "Estado"]
+
+        # largura das colunas
+        col_widths = [20, 30, 15, 15]
+
+        def format_row(row):
+            return (
+                f"{row[0][:20]:<20} "
+                f"{row[1][:30]:<30} "
+                f"{row[2][:15]:<15} "
+                f"{row[3]:<15}"
+            )
+
+        print("\n" + "-" * 85)
+        print(f"{headers[0]:<20} {headers[1]:<30} {headers[2]:<15} {headers[3]:<15}")
+        print("-" * 85)
+
+        for req in request_data_list:
+            print(format_row([
+                req.get("nome", ""),
+                req.get("descricao", ""),
+                req.get("cliente", ""),
+                req.get("estado", "PENDENTE")
+            ]))
+
+        print("-" * 85)
+    
+    def show_requests_for_update(self, request_data):
+        if not request_data:
+            print("Não existem pedidos.")
+            return None, None
+
+        print("\n===== PEDIDOS =====\n")
+
+        for i, req in enumerate(request_data, start=1):
+            print(f"{i}. {req['nome']} | {req['cliente']} | {req.get('estado', 'PENDENTE')}")
+
+        print("\n0. Cancelar")
+
+        try:
+            choice = int(input("\nEscolhe o pedido a atualizar: "))
+
+            if choice == 0:
+                return None, None
+
+            if choice < 1 or choice > len(request_data):
+                print("Opção inválida.")
+                return None, None
+
+            new_state = input("Novo estado do pedido: ").strip()
+
+            return choice - 1, new_state
+
+        except ValueError:
+            print("Input inválido.")
+            return None, None
+        
+    def print_request_evolution_for_user(self,history):
+        if not history:
+            print("Não existem evoluções.")
+
+        print("\n===== ATUALIZAÇÕES =====\n")
+
+        for i, req in enumerate(history, start=1):
+            print(f"{i}. {req['data']} | {req['nome']} | {req['descricao']} | {req['estado']} | {req['cliente']}")
+
