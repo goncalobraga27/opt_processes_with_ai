@@ -142,4 +142,17 @@ class Menu:
 
         for i, req in enumerate(history, start=1):
             print(f"{i}. {req['data']} | {req['nome']} | {req['descricao']} | {req['estado']} | {req['cliente']}")
-
+    
+    def print_insights_menu(self):
+        print("1. Ver faturas com dados anómalos.")
+        print("2. Prever o valor da próxima fatura.")
+        print("3. Observar a evolução do volume de faturação ao longo dos próximos 12 meses.")
+        option = input("Opção: ")
+        return int(option)
+    
+    def print_invoice_predictor_inputs(self):
+        invoice_date = input("Insira a data de previsão (dd/mm/yyyy): ")
+        invoice_category = input("Insira a categoria da fatura: ")
+        invoice_payment_method = input("Insira o método de pagamento: ")
+        username = input("Insira o nome de utilizador: ")
+        return invoice_date,invoice_category,invoice_payment_method,username

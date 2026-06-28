@@ -3,6 +3,8 @@ import os
 from pydoc import text
 from menu import Menu
 import csv
+import pandas as pd
+from ai_models import AnomalyDetector, ForecastPredictor, InvoicePredictor
 
 class BusinessLogic:
     def __init__(self):
@@ -147,8 +149,114 @@ class BusinessLogic:
             request_number,new_request_state = self.menu.show_requests_for_update(request_data)
             self.update_request_status(request_number,new_request_state)
         elif option == 3:
-            print("Em desenvolvimento")
+            option = self.menu.print_insights_menu()
+            self.execute_models(option)
+    
+    def execute_models(self, option):
+        if option == 1: 
+            # Carregar CSV
+            df = pd.read_csv(self.path_to_invoices_data)
 
+            # Treinar
+            detector = AnomalyDetector(contamination=0.02)
+            detector.fit(df)
+
+            # Detetar anomalias para todas as faturas
+            predictions = detector.predict(df)
+
+            df_view = predictions.copy()
+
+            df_view["invoice_amount"] = df_view["invoice_amount"].apply(lambda x: f"{x:,.0f} €")
+            df_view["score"] = df_view["score"].round(3)
+
+            df_view["prediction"] = df_view["prediction"].map({
+                1: "🟢 Normal",
+                -1: "🔴 Anómala"
+            })
+
+            cols = [
+                "invoice_date",
+                "invoice_reference",
+                "invoice_category",
+                "invoice_amount",
+                "prediction",
+                "status",
+                "score"
+            ]
+
+            print(df_view[cols].to_string(index=False))
+        elif option == 2: 
+            invoice_date,invoice_category,invoice_payment_method,username = self.menu.print_invoice_predictor_inputs()
+            # 2. Criar payload para o modelo
+            invoice = {
+                "invoice_date": invoice_date,
+                "invoice_category": invoice_category,
+                "invoice_payment_method": invoice_payment_method,
+                "username": username
+            }
+
+            if not hasattr(self, "invoice_model"):
+                # ideal: carregar modelo treinado
+                try:
+                    self.invoice_model = InvoicePredictor.load("invoice_model.joblib")
+                except:
+                    # fallback (se ainda não tiveres modelo guardado)
+                    df = pd.read_csv(self.path_to_invoices_data)
+                    self.invoice_model = InvoicePredictor()
+                    self.invoice_model.fit(df)
+
+            # 4. Fazer previsão
+            prediction = self.invoice_model.predict(invoice)
+
+            # 5. Output bonito
+            print("\n==============================")
+            print("💰 PREVISÃO DE FATURA")
+            print("==============================")
+            print(f"📅 Data: {invoice_date}")
+            print(f"📂 Categoria: {invoice_category}")
+            print(f"💳 Pagamento: {invoice_payment_method}")
+            print(f"👤 Utilizador: {username}")
+            print("------------------------------")
+            print(f"👉 Valor previsto: {prediction:,.2f} €")
+            print("==============================\n")
+        elif option == 3:
+            # 1. Ler dados
+            df = pd.read_csv(self.path_to_invoices_data)
+
+            # 2. Garantir que o modelo existe
+            if not hasattr(self, "forecast_model"):
+                self.forecast_model = ForecastPredictor(n_lags=12)
+
+            # 3. Treinar se ainda não estiver treinado
+            if not self.forecast_model.fitted:
+                self.forecast_model.fit(df)
+
+            # 4. Fazer previsão
+            preds = self.forecast_model.forecast(12)
+
+            # 5. Criar calendário mensal
+            months = pd.date_range(
+                start=pd.Timestamp.today().replace(day=1),
+                periods=12,
+                freq="ME"
+            )
+
+            # 6. Criar output bonito
+            result = pd.DataFrame({
+                "month": months,
+                "forecast_invoice_value": preds
+            })
+
+            result["forecast_invoice_value"] = result["forecast_invoice_value"].round(2)
+
+            df = result.copy()
+            # 1. Remover hora do timestamp (ficar só mês)
+            df["month"] = pd.to_datetime(df["month"]).dt.strftime("%Y-%m")
+            # 2. Remover notação científica e formatar moeda
+            df["forecast_invoice_value"] = df["forecast_invoice_value"].apply(lambda x: f"{x:,.2f} €")
+
+            print(df.to_string(index=False))
+            
     def update_request_status(self, request_number, new_request_state):
         path = self.path_to_request_data
 
