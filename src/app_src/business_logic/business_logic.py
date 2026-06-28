@@ -255,7 +255,20 @@ class BusinessLogic:
             # 2. Remover notação científica e formatar moeda
             df["forecast_invoice_value"] = df["forecast_invoice_value"].apply(lambda x: f"{x:,.2f} €")
 
-            print(df.to_string(index=False))
+            print("\n" + "=" * 60)
+            print("📈 PREVISÃO DO VALOR TOTAL DAS FATURAS")
+            print("=" * 60)
+            print("Com base no histórico de faturação, o modelo estima os")
+            print("seguintes valores para os próximos 12 meses:\n")
+
+            for _, row in df.iterrows():
+                print(f"📅 {row['month']:<7}  ➜  💰 {row['forecast_invoice_value']}")
+
+            print("\n" + "-" * 60)
+            print("ℹ️  Estes valores são estimativas produzidas pelo modelo")
+            print("   de Machine Learning e devem ser utilizados como apoio")
+            print("   à tomada de decisão.")
+            print("=" * 60)
             
     def update_request_status(self, request_number, new_request_state):
         path = self.path_to_request_data
