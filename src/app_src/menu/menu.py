@@ -146,7 +146,6 @@ class Menu:
     def print_insights_menu(self):
         print("1. Ver faturas com dados anómalos.")
         print("2. Prever o valor da próxima fatura.")
-        print("3. Observar a evolução do volume de faturação ao longo dos próximos 12 meses.")
         option = input("Opção: ")
         return int(option)
     
